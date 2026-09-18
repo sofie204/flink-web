@@ -16,17 +16,17 @@ This edition covers April through June 2026.
 
 Just like previous updates, we'll still cover releases, FLIPs, governance, and community announcements. However, we will begin with a few themes that stood out across the quarter.
 
-The changes and updates to Flink this quarter were quite impactful, with Flink SQL closing several gaps with the DataStream API through changelog conversion, and materialized tables gaining in-place evolution. With the 2.3 release branch cut on April 15, much of the quarter's engineering went straight into the 2.4 cycle. Such as, Apache Calcite upgrades for the SQL planner, common subexpression elimination in generated SQL code, and groundwork for JDK 25. Flink Agents shipped a new 0.3.0 release spanning reusable skills, cross-language actions, reliability, and observability. The community also accepted an umbrella proposal defining a broader direction for AI-native, multimodal processing in Flink.
+The changes and updates to Flink this quarter were quite impactful, with Flink SQL closing several gaps with the DataStream API through changelog conversion, and materialized tables gaining in-place evolution. With the 2.3 release branch cut on April 15, much of the quarter's engineering went into the Flink 2.4 cycle: Apache Calcite upgrades for the SQL planner, common subexpression elimination in generated SQL code, and groundwork for JDK 25. Flink Agents shipped a new 0.3.0 release spanning reusable skills, cross-language actions, reliability, and observability. The community also accepted an umbrella proposal defining a broader direction for AI-native, multimodal processing in Flink.
 
 The previous update is available in the [Flink Community Update for April 2026](https://flink.apache.org/2026/04/13/flink-community-update-for-april-2026/).
 
 ## In this update
 
 - [Release of Apache Flink 2.3.0](#release-of-apache-flink-230) — Flink SQL becomes more capable, a native S3 filesystem, and what to check before you upgrade
-- [2.4 cycle progress](#24-cycle-progress) — This cycle includes five Calcite upgrades, common subexpression elimination, and JDK 25 groundwork, all merged to the master branch this quarter
+- [Looking ahead to Flink 2.4](#looking-ahead-to-flink-24) — This cycle includes five Calcite upgrades, common subexpression elimination, and JDK 25 groundwork, all merged to the master branch this quarter
 - [Flink Agents 0.3.0](#flink-agents-030) — the sub-project adopts the AI ecosystem's emerging standards on its road to 1.0
 - [New releases](#new-releases) — the quarter's releases at a glance; Flink 2.3.0, Agents 0.3.0, Kubernetes Operator 1.15.0, and maintenance and connector releases across every supported line
-- [Governance and Community](#governance-and-community) — four new committers, a new PMC member, eleven accepted FLIPs, the StateFun sunset vote, and newly released guidelines for AI-assisted contributions
+- [Governance and Community](#governance-and-community) — four new committers, a new PMC member, twelve accepted FLIPs, the StateFun sunset vote, and newly released guidelines for AI-assisted contributions
 - [Staying up to date](#staying-up-to-date) — where to find the community and how to give feedback on these updates
 
 ## Release of Apache Flink 2.3.0
@@ -113,7 +113,7 @@ see what the adaptive scheduler decided and when.
 
 ([FLIP-547](https://cwiki.apache.org/confluence/spaces/FLINK/pages/384895569/FLIP-547+Support+checkpoint+during+recovery)) provides relief for large jobs recovering with unaligned checkpoints.
 
-## 2.4 cycle progress
+## Looking ahead to Flink 2.4
 
 The 2.3 release branch was cut on April 15, so most of what merged to master during the quarter targets Flink 2.4. Three threads in that work are described below.
 
@@ -135,7 +135,7 @@ The upgrades also let the planner shed code it had been carrying as private copi
 The three changes below, all targeting 2.4.0, stop Flink SQL from doing the same work more than once per row:
 
 - [Common subexpression elimination](https://issues.apache.org/jira/browse/FLINK-39268) is now applied in the code Flink generates for the Calc operator in both batch and streaming. When the same deterministic expression appears in several projections or filter conditions, it is computed once and reused. The ticket's example is an expensive UDF used in two output columns and the `WHERE` clause: evaluated three times per row before this change, once after. It was proposed in March by a community member whose company had already built the same optimization internally, and merged on May 7. One practical note for 2.4 upgraders: reuse relies on the existing `isDeterministic()` contract, the same one constant folding already uses, so a UDF with side effects must declare itself non-deterministic.
-- `JSON_VALUE` and `JSON_QUERY` calls that read the same JSON document [used to parse it once per call](https://issues.apache.org/jira/browse/FLINK-39638), now the generated code now parses once and reuses the result.
+- `JSON_VALUE` and `JSON_QUERY` calls that read the same JSON document [used to parse it once per call](https://issues.apache.org/jira/browse/FLINK-39638); the generated code now parses once and reuses the result.
 - `REGEXP_REPLACE` [no longer recompiles its pattern on every record](https://issues.apache.org/jira/browse/FLINK-39650). The patterns are cached, the error log line that an invalid pattern used to write for every record is gone, and an invalid literal pattern now fails at planning time instead of producing a `NULL` per row.
 
 ### Groundwork for JDK 25
@@ -197,7 +197,7 @@ Highlights include Kubernetes-native Conditions, Logback support, bundled metric
 
 The theme of this release is the operator becoming a more standard Kubernetes citizen. Status is now reported through Kubernetes-native Conditions, so the tooling already used to read any other resource can read the operator's state too.
 
-The accepted proposals pipeline points the same way. This quarter the community accepted composable parallelism alignment modes for the autoscaler ([FLIP-586](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430408363/FLIP-586+Composable+Parallelism+Alignment+Modes+for+Flink+Autoscaler)), per-downstream-target throughput metrics ([FLIP-587](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430408366/FLIP-587+Expose+per+downstream+target+numRecordsOut+metric)), pluggable storage for the HistoryServer ([FLIP-584](https://issues.apache.org/jira/browse/FLINK-39911)), job info on Source contexts ([FLIP-583](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430407938/FLIP-583+Expose+JobInfo+on+Source+contexts)), and a supported CLI for managing stuck exactly once Kafka transactions [FLIP-572](https://cwiki.apache.org/confluence/spaces/FLINK/pages/406623328/FLIP-572+Introduce+Flink-Kafka+Transactions+Management+Tool). A stuck exactly-once Kafka transaction used to force a choice between a downstream outage and data loss at broker timeout, fixable only with knowledge of producer fencing,  FLIP-572 turns that improvised process into a supported tool. FLIP-584 is already seeing progress, its storage abstraction and a file-based implementation [merged on June 26](https://issues.apache.org/jira/browse/FLINK-39911).
+In addition to the new Flink Kubernetes Operator release, there are a couple of FLIPs pertaining to the autoscaler module which the community accepted. [FLIP-586](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430408363/FLIP-586+Composable+Parallelism+Alignment+Modes+for+Flink+Autoscaler) was accepted on June 15 and proposed composable parallelism alignment modes for the Flink autoscaler. This change lets users select from three built-in alignment modes (BALANCED, EVENLY_SPREAD, OFF) through a single configuration key, or plug in their own custom mode via a new plugin SPI. That SPI follows the same plugin convention as [FLIP-575](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421956875/FLIP-575+Scaling+Executor+Plugin+SPI+for+Flink+Autoscaler), [accepted in April](https://lists.apache.org/thread/pkn8rmdfzfq5vl8smj8kw03jns9gq8ty), which proposed a Scaling Executor Plugin SPI that lets users approve, modify, or veto the autoscaler's final scaling decision. The two FLIPs complement one another and make the autoscaler more extensible, letting users customize its behavior without replacing its core scaling logic.
 
 ### Maintenance and connector releases
 
@@ -247,28 +247,37 @@ In April the Flink community settled how it handles contributions written with A
 
 ### FLIPs
 
-Eleven FLIPs were accepted this quarter, two in April, two in May, and seven in June. Several are covered elsewhere in this update.
+Twelve FLIPs were accepted this quarter, three in April, two in May, and seven in June. Several are covered elsewhere in this update.
 
-FLIP-577 with Flink Agents, and FLIP-572, FLIP-583, FLIP-584, FLIP-586, and FLIP-587 under operations.
+FLIP-577 with Flink Agents, FLIP-575 and FLIP-586 with the Kubernetes operator.
 
 The remaining FLIPs, for the record:
 
 * [FLIP-574](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421954023/FLIP-574+Metadata+Filter+Push-Down+for+Table+Sources): Metadata Filter Push-Down for Table
-  Sources. (Jim Hughes)
+  Sources (Jim Hughes)
   * Accepted April 21 and [merged on April 24](https://github.com/apache/flink/pull/27913). Release target is 2.4.0.
 * [FLIP-568](https://cwiki.apache.org/confluence/spaces/FLINK/pages/406623034/FLIP-568+Strict+BYTES-to-STRING+CAST+with+UTF-8+Validation+Utilities):
   Strict BYTES-to-STRING CAST with UTF-8 Validation Utilities (Gustavo de Morais)
   * Accepted April 13, targeting 2.4.0: `CAST` from `BYTES` to `STRING` will reject invalid UTF-8 instead of silently substituting replacement characters, the same move Flink SQL made this quarter on upsert keys and mini-batch aggregation.
 
 * [FLIP-578](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421958318/FLIP-578+In-place+Table+to+Materialized+Table+conversion?src=contextnavpagetreemode): In-place Table to Materialized Table
-  conversion. (Ramin Gharib)
-  * Accepted June 3 and implementation was merged on June 15. Targeting 2.4.0
-* [FLIP-579](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421958523/FLIP-579+LATERAL+SNAPSHOT+Join): LATERAL SNAPSHOT Join. (Fabian Hueske)
-  * Accepted June 11, targeting 2.4.0
+  conversion (Ramin Gharib)
+  * Accepted June 3 and its implementation merged on June 15. Targeting 2.4.0.
+* [FLIP-579](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421958523/FLIP-579+LATERAL+SNAPSHOT+Join): LATERAL SNAPSHOT Join (Fabian Hueske)
+  * Accepted June 11, targeting 2.4.0.
 
-* [FLIP-576](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421957173/FLIP-576+Filesystem-Plugin+Observability+flink-s3-fs-native): Filesystem-Plugin Observability.
+* [FLIP-576](https://cwiki.apache.org/confluence/spaces/FLINK/pages/421957173/FLIP-576+Filesystem-Plugin+Observability+flink-s3-fs-native): Filesystem-Plugin Observability
   (Samrat Deb)
   * Accepted June 3, targeting 2.4.0.
+* [FLIP-572](https://cwiki.apache.org/confluence/spaces/FLINK/pages/406623328/FLIP-572+Introduce+Flink-Kafka+Transactions+Management+Tool): Introduce Flink-Kafka Transactions Management Tool (Aleksandr Savonin)
+  * Accepted May 18. No release assigned yet.
+* [FLIP-583](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430407938/FLIP-583+Expose+JobInfo+on+Source+contexts): Expose JobInfo on Source contexts (Aleksandr Savonin)
+  * Accepted June 19, targeting 2.4.0.
+* [FLIP-584](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430408093/FLIP-584+Support+Pluggable+Storage+Backend+for+HistoryServer): Support Pluggable Storage Backend for HistoryServer (Zihao Chen)
+  * Accepted June 11, targeting 2.4.0; the storage abstraction and a file-based implementation [merged on June 26](https://issues.apache.org/jira/browse/FLINK-39911).
+* [FLIP-587](https://cwiki.apache.org/confluence/spaces/FLINK/pages/430408366/FLIP-587+Expose+per+downstream+target+numRecordsOut+metric): Expose per-downstream-target numRecordsOut metric (Dennis-Mircea Ciupitu)
+  * Accepted June 15. No release assigned yet.
+
 
 ### FLIPs being discussed
 
