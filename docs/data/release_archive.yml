@@ -539,8 +539,18 @@ release_archive:
       filename: "jdbc"
     - name: "Flink JDBC Connector"
       connector: "jdbc"
+      version: 4.1.0
+      release_date: 2026-07-24
+      filename: "jdbc"
+    - name: "Flink JDBC Connector"
+      connector: "jdbc"
       version: 3.3.0
       release_date: 2025-04-22
+      filename: "jdbc"
+    - name: "Flink JDBC Connector"
+      connector: "jdbc"
+      version: 3.4.0
+      release_date: 2026-07-24
       filename: "jdbc"
     - name: "Flink Elasticsearch Connector"
       connector: "elasticsearch"
@@ -803,6 +813,9 @@ release_archive:
 
   flink_shaded:
     -
+      version: "22.0"
+      release_date: 2026-08-31
+    -
       version: "21.0"
       release_date: 2026-01-12
     -
@@ -900,6 +913,9 @@ release_archive:
 
   flink_agents:
     - version_short: 0.3
+      version_long: 0.3.1
+      release_date: 2026-07-25
+    - version_short: 0.3
       version_long: 0.3.0
       release_date: 2026-06-19
     - version_short: 0.2
@@ -930,6 +946,9 @@ release_archive:
       release_date: 2021-01-07
 
   flink_kubernetes_operator:
+    - version_short: 1.16
+      version_long: 1.16.0
+      release_date: 2026-09-15
     - version_short: 1.15
       version_long: 1.15.0
       release_date: 2026-05-26
